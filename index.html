@@ -175,11 +175,20 @@
   #envelope.s1 .seal::before { opacity: 0; transform: scale(1.6); transition: opacity .7s ease, transform .7s ease; }
   #envelope.s1 .seal .half { transform: scale(1.18); opacity: 0; transition: transform .45s cubic-bezier(.2,.8,.3,1), opacity .4s ease .05s; }
 
-  /* revoada de borboletas que nasce do lacre */
-  .bfly { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none; will-change: transform, opacity; filter: drop-shadow(0 3px 3px rgba(60,25,5,.35)); }
-  .bfly svg { display: block; width: 100%; height: 100%; overflow: visible; }
-  .bfly .w { transform-origin: 20px 20px; animation: flap var(--flap, .17s) ease-in-out infinite alternate; }
-  @keyframes flap { to { transform: scaleX(.18); } }
+  /* fogos de artifício que explodem do lacre */
+  .fx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 60; pointer-events: none; }
+
+  /* música: player do YouTube fora da área visível + botão para pausar/tocar */
+  #ytWrap { position: fixed; left: -9999px; top: 0; width: 200px; height: 200px; }
+  #music {
+    position: fixed; z-index: 40; right: max(18px, calc(50vw - 260px + 18px)); bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+    width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255,240,225,.5); cursor: pointer;
+    background: var(--terracotta); color: var(--ivory); box-shadow: 0 4px 14px rgba(70,30,10,.35);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #music svg { width: 18px; height: 18px; }
+  #music.playing .ico-play, #music:not(.playing) .ico-pause { display: none; }
+  #music:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
 
   /* saída: envelope desce, cartão vem para a frente */
   #envelope.s3 .card { transform: translateY(-16%); }
@@ -631,6 +640,12 @@
   </footer>
 </main>
 
+<div id="ytWrap" aria-hidden="true"><div id="ytPlayer"></div></div>
+<button id="music" type="button" aria-label="Tocar música" hidden>
+  <svg class="ico-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5 L19 12 L8 19Z"/></svg>
+  <svg class="ico-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg>
+</button>
+
 <script>
   // ===== Configuração — edite aqui =====
   const CONFIG = {
@@ -640,6 +655,7 @@
     date: new Date("2027-04-10T20:00:00"), // horário da cerimônia
     city: "São Leopoldo · RS",
     // URL do App da Web do Google Apps Script (veja rsvp-apps-script.gs) — as respostas vão para a planilha
+    music: "fMmfd4L3LMo", // ID do vídeo no YouTube (James Arthur — Say You Won't Let Go)
     rsvpEndpoint: "https://script.google.com/macros/s/AKfycbw9MD1TOlox-iwg2Vp5Xk2l857Ox1xPKhxOOJDnLoXs7wSIKxk4A_TAC-61ZDE-fXGv/exec",
   };
 
@@ -779,38 +795,106 @@
     el("ellipse", { cx: B[0], cy: B[1], rx: 6, ry: 7, fill: "#9c3c22" });
   })();
 
-  // ===== Borboletas: saem do centro do lacre e voam para todos os lados, mais para cima =====
-  function butterflies() {
+  // ===== Fogos de artifício: explosão principal no lacre + estouros menores ao redor =====
+  function fireworks() {
     const r = env.querySelector(".seal").getBoundingClientRect();
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    const palette = [["#b0492c", "#5e1f0e"], ["#fbf3e6", "#8a7152"], ["#ecd6c4", "#8e4a22"], ["#7e3119", "#3a1408"], ["#f2c98e", "#8e4a22"], ["#8a7152", "#3a2a1c"]];
-    for (let i = 0; i < 26; i++) {
-      const [c, edge] = palette[i % palette.length];
-      const size = 40 + Math.random() * 38;
-      const b = document.createElement("div");
-      b.className = "bfly";
-      b.style.width = b.style.height = size + "px";
-      b.style.setProperty("--flap", (.12 + Math.random() * .1).toFixed(2) + "s");
-      const wing = `<path d="M20 19 C24 6 37 4 37 14 C37 21 29 23 20 21Z" fill="${c}" stroke="${edge}" stroke-width=".8"/>
-        <path d="M20 21 C27 22 33 27 30 33 C27 37 21 31 20 23Z" fill="${c}" stroke="${edge}" stroke-width=".8" opacity=".92"/>
-        <circle cx="31" cy="12" r="1.6" fill="#fffaf2" opacity=".85"/><path d="M22 18 C27 12 32 11 34 13" fill="none" stroke="${edge}" stroke-width=".5" opacity=".6"/>`;
-      b.innerHTML = `<svg viewBox="0 0 40 40"><g class="w">${wing}</g><g transform="matrix(-1 0 0 1 40 0)"><g class="w">${wing}</g></g>
-        <ellipse cx="20" cy="22" rx="1.4" ry="7" fill="#3a2a1c"/><path d="M19.5 15 C18 11 16 9 14.5 8 M20.5 15 C22 11 24 9 25.5 8" fill="none" stroke="#3a2a1c" stroke-width=".6"/></svg>`;
-      document.body.appendChild(b);
-      const ang = Math.random() * Math.PI * 2, dist = 160 + Math.random() * 300;
-      const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist * .8 - 140 - Math.random() * 160;
-      const head = Math.atan2(dy, dx) * 180 / Math.PI + 90;  // a borboleta voa de frente para a direção
-      const wob = (Math.random() - .5) * 80;
-      const at = (f, x, y, rot, sc, op) => ({ offset: f, opacity: op, transform: `translate(${cx + x - size / 2}px, ${cy + y - size / 2}px) rotate(${rot}deg) scale(${sc})` });
-      b.animate([
-        at(0, 0, 0, head, .2, 0),
-        at(.1, dx * .12, dy * .12, head, 1, 1),
-        at(.5, dx * .55 + wob, dy * .55, head + wob * .4, 1, 1),
-        at(1, dx + wob * .5, dy, head - wob * .3, .85, 0),
-      ], { duration: 1700 + Math.random() * 1300, delay: Math.random() * 180, easing: "cubic-bezier(.15,.6,.35,1)", fill: "forwards" })
-        .finished.then(() => b.remove());
+    const cv = document.createElement("canvas"), dpr = Math.min(2, devicePixelRatio || 1);
+    cv.className = "fx"; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+    document.body.appendChild(cv);
+    const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
+    const palettes = [["#fff4d6", "#f6d28a", "#e8b45a"], ["#ffd9b8", "#e8875a", "#c9643e"], ["#fff8ec", "#f3e3cc", "#d9c3a0"], ["#ffe6c7", "#d9953a", "#b0492c"]];
+    const sparks = [], rockets = [];
+    // brilho pré-desenhado por cor: núcleo branco + halo colorido (bem visível sobre o caramelo)
+    const glow = {};
+    const sprite = c => glow[c] || (glow[c] = (() => {
+      const o = document.createElement("canvas"); o.width = o.height = 64;
+      const g = o.getContext("2d"), rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      rg.addColorStop(0, "#ffffff"); rg.addColorStop(.18, "#fffaf0"); rg.addColorStop(.4, c); rg.addColorStop(1, "rgba(255,200,140,0)");
+      g.fillStyle = rg; g.fillRect(0, 0, 64, 64); return o;
+    })());
+    function burst(x, y, n, power, pal) {
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + Math.random() * .2, v = power * (.35 + Math.random() * .65);
+        sparks.push({ x, y, px: x, py: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1,
+          decay: .008 + Math.random() * .012, color: pal[Math.floor(Math.random() * pal.length)], twinkle: Math.random() < .3 });
+      }
     }
+    burst(cx, cy, 170, 11, palettes[0]);                      // explosão principal, dourada
+    burst(cx, cy, 80, 6, palettes[1]);
+    let flash = 1;                                           // clarão inicial no lacre
+    [[260, -.32, -.30, 1], [520, .30, -.36, 3], [800, -.05, -.46, 2], [1050, .36, -.12, 1], [1250, -.34, -.08, 3]]
+      .forEach(([ms, fx, fy, p]) => setTimeout(() => rockets.push({ x: cx, y: cy, tx: cx + fx * innerWidth, ty: cy + fy * innerHeight, t: 0, pal: palettes[p] }), ms));
+    const start = performance.now();
+    let last = start;
+    (function frame(now) {
+      const dt = Math.min(4, (now - last) / 16.7) || 1; last = now;   // passo pelo tempo real, não por quadro
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      if (flash > 0) {
+        const fr = ctx.createRadialGradient(cx, cy, 0, cx, cy, 220);
+        fr.addColorStop(0, `rgba(255,248,230,${flash})`); fr.addColorStop(1, "rgba(255,220,170,0)");
+        ctx.fillStyle = fr; ctx.fillRect(cx - 220, cy - 220, 440, 440); flash -= .07 * dt;
+      }
+      for (let i = rockets.length - 1; i >= 0; i--) {     // foguetes sobem do lacre e estouram
+        const k = rockets[i]; k.t = Math.min(1, k.t + .06 * dt);
+        const x = k.x + (k.tx - k.x) * k.t, y = k.y + (k.ty - k.y) * (1 - (1 - k.t) ** 2);
+        ctx.drawImage(sprite("#ffd9a0"), x - 9, y - 9, 18, 18);
+        if (k.t >= 1) { burst(x, y, 70, 5.5, k.pal); rockets.splice(i, 1); }
+      }
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const p = sparks[i];
+        const f = .965 ** dt;
+        p.px = p.x; p.py = p.y; p.vx *= f; p.vy = p.vy * f + .07 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= p.decay * dt;
+        if (p.life <= 0) { sparks.splice(i, 1); continue; }
+        const alpha = p.twinkle ? p.life * (.4 + Math.random() * .6) : p.life;
+        ctx.globalAlpha = alpha; ctx.strokeStyle = p.color; ctx.lineWidth = 2.6 * p.life + .6; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.moveTo(p.px - p.vx * 2.5, p.py - p.vy * 2.5); ctx.lineTo(p.x, p.y); ctx.stroke();
+        const sz = 6 + 10 * p.life;
+        ctx.drawImage(sprite(p.color), p.x - sz / 2, p.y - sz / 2, sz, sz);
+      }
+      ctx.globalAlpha = 1;
+      if (sparks.length || rockets.length || now - start < 1500) requestAnimationFrame(frame); else cv.remove();
+    })(start);
   }
+
+  // ===== Música de fundo pelo player oficial do YouTube =====
+  const Music = (() => {
+    const btn = $("music");
+    let player = null, ready = false, wanted = false;
+    const setUI = on => { btn.classList.toggle("playing", on); btn.setAttribute("aria-label", on ? "Pausar música" : "Tocar música"); };
+    function fadeIn() {
+      let v = 0; player.setVolume(0);
+      const t = setInterval(() => { v = Math.min(80, v + 8); player.setVolume(v); if (v >= 80) clearInterval(t); }, 150);
+    }
+    window.onYouTubeIframeAPIReady = () => {
+      player = new YT.Player("ytPlayer", {
+        width: 200, height: 200, videoId: CONFIG.music,
+        playerVars: { controls: 0, playsinline: 1, rel: 0, start: 0, loop: 1, playlist: CONFIG.music },
+        events: {
+          onReady: () => { ready = true; if (wanted) { player.unMute(); player.playVideo(); fadeIn(); } },
+          onStateChange: e => {
+            if (e.data === YT.PlayerState.PLAYING) setUI(true);
+            if (e.data === YT.PlayerState.PAUSED) setUI(false);
+            if (e.data === YT.PlayerState.ENDED) { player.seekTo(0); player.playVideo(); }
+          },
+        },
+      });
+    };
+    if (CONFIG.music) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+      btn.hidden = false;
+    }
+    btn.addEventListener("click", () => {
+      if (!ready) return;
+      if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo();
+      else { player.unMute(); player.playVideo(); }
+    });
+    return {
+      play() { wanted = true; if (ready) { player.unMute(); player.playVideo(); fadeIn(); } },
+    };
+  })();
 
   // ===== Abertura: lacre acende em círculo, se parte, aba abre, cartão sai =====
   const env = $("envelope"), card = env.querySelector(".card");
@@ -822,11 +906,12 @@
   function openEnvelope() {
     if (env.classList.contains("s0")) return;
     if (navigator.vibrate) navigator.vibrate(18);
+    Music.play();                                            // o toque no lacre libera o áudio
     if (reduceMotion) { finishOpening(); return; }
     const at = (ms, fn) => setTimeout(fn, ms);
     env.classList.add("s0");                                 // luz percorre a borda do lacre
     at(1150, () => env.classList.add("s0f"));                // círculo fechado: lacre se ilumina
-    at(1950, () => { env.classList.add("s1"); butterflies(); }); // lacre se desfaz em borboletas
+    at(1950, () => { env.classList.add("s1"); fireworks(); });  // lacre explode em fogos de artifício
     at(2400, () => env.classList.add("s2"));                 // aba gira em 3D
     at(2900, () => env.classList.add("behind"));             // aba passa para trás do cartão
     at(3450, () => env.classList.add("s3"));                 // cartão desliza para fora (1,1 s)
