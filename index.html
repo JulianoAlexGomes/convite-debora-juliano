@@ -35,6 +35,7 @@
     -webkit-font-smoothing: antialiased; overflow-x: hidden;
   }
   body.locked { overflow: hidden; }
+  [hidden] { display: none !important; }
   .script { font-family: "Pinyon Script", cursive; font-weight: 400; }
   .caps { text-transform: uppercase; letter-spacing: .32em; }
 
@@ -594,7 +595,7 @@
 
   <section class="block paper-a rsvp">
     <div class="reveal">
-      <h2 class="heading script press"><svg><use href="#flourish-l"/></svg>Confirme presença<svg class="flip"><use href="#flourish-l"/></svg></h2>
+      <h2 class="heading script press" id="rsvpTitle"><svg><use href="#flourish-l"/></svg>Confirme presença<svg class="flip"><use href="#flourish-l"/></svg></h2>
       <p id="rsvpAsk">Pedimos a gentileza de confirmar sua presença até <strong>10 de março de 2027</strong>.</p>
       <form id="rsvpForm" class="rsvp-form" novalidate>
         <label class="field"><span>Nome completo</span><input name="nome" autocomplete="name" required maxlength="120"></label>
@@ -846,6 +847,16 @@
   (() => {
     const form = $("rsvpForm"), status = $("rsvpStatus"), btn = form.querySelector("button");
     const yes = form.querySelector(".if-yes");
+    // depois de confirmado: some o pedido e o formulário, fica só o agradecimento
+    function showDone({ primeiro, sim }) {
+      form.hidden = $("rsvpAsk").hidden = $("rsvpTitle").hidden = true;
+      $("rsvpDoneMsg").textContent = sim
+        ? `${primeiro}, sua presença está confirmada. Mal podemos esperar para celebrar com você!`
+        : `${primeiro}, sentiremos sua falta. Obrigado por nos avisar com carinho.`;
+      $("rsvpDone").hidden = false;
+    }
+    // quem já confirmou neste aparelho vê o agradecimento ao voltar
+    try { const saved = JSON.parse(localStorage.getItem("rsvp-dj")); if (saved && saved.primeiro) showDone(saved); } catch {}
     // acompanhantes: um campo de nome para cada pessoa (até 5)
     const list = $("companionList"), addBtn = $("addCompanion"), MAX = 5;
     function addCompanion() {
@@ -879,12 +890,9 @@
       try {
         // text/plain evita a verificação prévia de CORS; o Apps Script lê o JSON do corpo
         await fetch(CONFIG.rsvpEndpoint, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(data) });
-        form.hidden = true;
-        $("rsvpAsk").hidden = true;
-        $("rsvpDoneMsg").textContent = sim
-          ? `${nome.split(" ")[0]}, sua presença está confirmada. Mal podemos esperar para celebrar com você!`
-          : `${nome.split(" ")[0]}, sentiremos sua falta. Obrigado por nos avisar com carinho.`;
-        $("rsvpDone").hidden = false;
+        const done = { primeiro: nome.split(" ")[0], sim };
+        try { localStorage.setItem("rsvp-dj", JSON.stringify(done)); } catch {}
+        showDone(done);
       } catch {
         status.textContent = "Não foi possível enviar agora. Verifique sua conexão e tente novamente.";
         btn.disabled = false; btn.textContent = "Enviar confirmação";
