@@ -675,7 +675,8 @@
     name1: "Débora",
     name2: "Juliano",
     initials: "D&J",
-    date: new Date("2027-04-10T20:00:00"), // horário da cerimônia
+    date: new Date("2027-04-10T20:00:00"), // horário da cerimônia (contagem regressiva)
+    heroTime: "19h", // horário mostrado na capa (recepção dos convidados)
     city: "São Leopoldo · RS",
     // URL do App da Web do Google Apps Script (veja rsvp-apps-script.gs) — as respostas vão para a planilha
     music: "fMmfd4L3LMo", // ID do vídeo no YouTube (James Arthur — Say You Won't Let Go)
@@ -699,7 +700,7 @@
   $("dWeek").textContent = d.toLocaleDateString("pt-BR", { weekday: "long" }).split("-")[0];
   $("dDay").textContent = pad(d.getDate());
   $("dYear").textContent = d.getFullYear();
-  $("dTime").textContent = d.getHours() + "h" + (d.getMinutes() ? pad(d.getMinutes()) : "");
+  $("dTime").textContent = CONFIG.heroTime;
   document.querySelector(".hero .city").textContent = CONFIG.city;
 
   // gerador pseudoaleatório com semente: o desenho sai sempre igual
