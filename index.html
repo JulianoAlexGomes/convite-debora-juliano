@@ -826,7 +826,8 @@
     cv.className = "fx"; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
     document.body.appendChild(cv);
     const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
-    const palettes = [["#f2c14e", "#d9952a", "#e0a63a"], ["#e8875a", "#c9643e", "#b0492c"], ["#d4a640", "#b8862a", "#c99a3a"], ["#d9953a", "#b0492c", "#8e3a22"]];
+    // só tons de dourado: do ouro claro ao ouro velho
+    const palettes = [["#f6d36a", "#e6b740", "#d4a12e"], ["#f2c14e", "#d9a536", "#c29028"], ["#fbe08c", "#e8c25a", "#cfa03a"], ["#e0b04a", "#c8962c", "#b8862a"]];
     const sparks = [], rockets = [];
     // brilho pré-desenhado por cor: núcleo claro + halo colorido
     const glow = {};
@@ -861,7 +862,7 @@
       for (let i = rockets.length - 1; i >= 0; i--) {     // foguetes sobem do lacre e estouram
         const k = rockets[i]; k.t = Math.min(1, k.t + .06 * dt);
         const x = k.x + (k.tx - k.x) * k.t, y = k.y + (k.ty - k.y) * (1 - (1 - k.t) ** 2);
-        ctx.drawImage(sprite("#ffd9a0"), x - 9, y - 9, 18, 18);
+        ctx.drawImage(sprite("#e6b740"), x - 9, y - 9, 18, 18);
         if (k.t >= 1) { burst(x, y, 70, 5.5, k.pal); rockets.splice(i, 1); }
       }
       for (let i = sparks.length - 1; i >= 0; i--) {
