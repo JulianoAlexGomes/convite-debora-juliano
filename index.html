@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#c67a3e">
+<meta name="theme-color" content="#e9dcc6">
 <title>Débora &amp; Juliano</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +14,7 @@
     --terracotta: #b0492c;
     --terracotta-deep: #8e3a22;
     --caramel: #c67a3e;
+    --envelope: #e9dcc6;
     --bronze: #8a7152;
     --bronze-light: #b9a07c;
     --olive: #7c7a58;
@@ -70,17 +71,17 @@
     transform-style: preserve-3d;
   }
 
-  /* papel do envelope: caramelo com trama fina */
+  /* papel do envelope: bege com trama fina; detalhes em terracota */
   .env-back, .pocket, .flap .front {
-    background-color: var(--caramel);
+    background-color: var(--envelope);
     background-image:
       var(--grain),
       repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px),
-      linear-gradient(180deg, rgba(255,235,210,.12), rgba(90,40,10,.14));
+      linear-gradient(180deg, rgba(255,250,240,.25), rgba(140,100,60,.12));
     background-size: 220px, auto, auto;
     background-blend-mode: soft-light, normal, normal;
   }
-  .env-back { position: absolute; inset: 0; box-shadow: inset 0 0 50px rgba(80,35,10,.35); }
+  .env-back { position: absolute; inset: 0; box-shadow: inset 0 0 50px rgba(120,80,40,.22); }
   .env-back::after { /* forro terracota visível pela boca do envelope */
     content: ""; position: absolute; left: 3%; right: 3%; top: 0; height: 55%;
     background: repeating-linear-gradient(45deg, rgba(255,230,210,.07) 0 1px, transparent 1px 7px), linear-gradient(180deg, #7e3119, var(--terracotta));
@@ -114,6 +115,8 @@
     position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
     clip-path: polygon(0 0, 100% 0, 52% 98%, 50% 100%, 48% 98%);
   }
+  .flap-trim { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+  .flap-trim path { vector-effect: non-scaling-stroke; stroke-width: 1; }
   .flap .front::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,240,220,.18), rgba(0,0,0,0) 35%, rgba(90,40,10,.18)); }
   .flap .inside {
     transform: rotateX(180deg);
@@ -122,7 +125,7 @@
   .flap-shadow {
     position: absolute; left: 0; right: 0; top: 0; height: 54%; z-index: 3; pointer-events: none;
     clip-path: polygon(0 0, 100% 0, 50% 100%);
-    background: linear-gradient(180deg, transparent 80%, rgba(70,30,8,.35)); filter: blur(2px);
+    background: linear-gradient(180deg, transparent 80%, rgba(120,70,30,.28)); filter: blur(2px);
     transition: opacity .4s ease;
   }
   #envelope.s2 .flap { transform: rotateX(-178deg); }
@@ -202,8 +205,8 @@
 
   .tap-hint {
     position: absolute; left: 0; right: 0; bottom: max(8vh, 40px); z-index: 6;
-    text-align: center; color: #fbeee0; font-size: 15px; opacity: .9;
-    text-shadow: 0 1px 2px rgba(80,35,10,.4);
+    text-align: center; color: var(--terracotta); font-size: 15px; opacity: .9;
+    text-shadow: 0 1px 0 rgba(255,255,255,.6);
     animation: blink 2.4s ease-in-out infinite; transition: opacity .3s;
   }
   @keyframes blink { 50% { opacity: .35; } }
@@ -386,10 +389,10 @@
   <defs>
     <!-- cera de bronze envelhecido -->
     <radialGradient id="wax" cx="38%" cy="32%" r="75%">
-      <stop offset="0" stop-color="#b59a76"/><stop offset=".45" stop-color="#7f6749"/><stop offset="1" stop-color="#43352a"/>
+      <stop offset="0" stop-color="#f8e3a3"/><stop offset=".45" stop-color="#d1a849"/><stop offset="1" stop-color="#7c5715"/>
     </radialGradient>
     <radialGradient id="waxIn" cx="60%" cy="65%" r="65%">
-      <stop offset="0" stop-color="#8d7455"/><stop offset="1" stop-color="#5a4831"/>
+      <stop offset="0" stop-color="#e2bd62"/><stop offset="1" stop-color="#a47a24"/>
     </radialGradient>
     <radialGradient id="sealLight">
       <stop offset="0" stop-color="#fff2d8" stop-opacity=".55"/><stop offset=".7" stop-color="#ffd9a6" stop-opacity=".25"/><stop offset="1" stop-color="#ffd9a6" stop-opacity=".6"/>
@@ -416,15 +419,15 @@
     <symbol id="waxSeal" viewBox="-60 -60 120 120" overflow="visible">
       <g filter="url(#waxTex)">
         <path class="sealEdge" fill="url(#wax)"/>
-        <path d="M40 30 C50 34 56 42 50 47 C44 50 38 42 34 36Z" fill="#5f4c35"/>
+        <path d="M40 30 C50 34 56 42 50 47 C44 50 38 42 34 36Z" fill="#9a7020"/>
         <circle r="37" fill="url(#waxIn)"/>
       </g>
-      <circle r="37" fill="none" stroke="#2e2416" stroke-width="2" opacity=".7" transform="translate(-.6 -.9)"/>
-      <circle r="37" fill="none" stroke="#d6c09c" stroke-width="1.2" opacity=".5" transform="translate(.7 1)"/>
-      <g fill="#d9c4a0" color="#d9c4a0" opacity=".45" transform="translate(.6 .8)"><use href="#laurelPair"/></g>
-      <g fill="#33281a" color="#33281a"><use href="#laurelPair"/></g>
-      <text x=".7" y="7" text-anchor="middle" font-family="Pinyon Script, cursive" font-size="28" fill="#dcc7a3" opacity=".5" class="sealText">D&amp;J</text>
-      <text x="0" y="6" text-anchor="middle" font-family="Pinyon Script, cursive" font-size="28" fill="#33281a" class="sealText">D&amp;J</text>
+      <circle r="37" fill="none" stroke="#5e400c" stroke-width="2" opacity=".65" transform="translate(-.6 -.9)"/>
+      <circle r="37" fill="none" stroke="#fff3c8" stroke-width="1.2" opacity=".75" transform="translate(.7 1)"/>
+      <g fill="#fff3c8" color="#fff3c8" opacity=".7" transform="translate(.6 .8)"><use href="#laurelPair"/></g>
+      <g fill="#6b4a10" color="#6b4a10"><use href="#laurelPair"/></g>
+      <text x=".7" y="7" text-anchor="middle" font-family="Pinyon Script, cursive" font-size="28" fill="#fff3c8" opacity=".75" class="sealText">D&amp;J</text>
+      <text x="0" y="6" text-anchor="middle" font-family="Pinyon Script, cursive" font-size="28" fill="#6b4a10" class="sealText">D&amp;J</text>
       <ellipse cx="-16" cy="-22" rx="26" ry="16" fill="url(#waxShine)" transform="rotate(-25 -16 -22)"/>
     </symbol>
 
@@ -473,12 +476,15 @@
     </div>
     <div class="pocket"></div>
     <svg class="pocket-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M0 0 L50 50 L100 0" stroke="rgba(70,30,8,.35)"/>
-      <path d="M0 .4 L50 50.6 L100 .4" stroke="rgba(255,225,190,.18)"/>
-      <path d="M0 100 L40 58 M100 100 L60 58" stroke="rgba(70,30,8,.16)"/>
+      <path d="M0 0 L50 50 L100 0" stroke="rgba(176,73,44,.55)"/>
+      <path d="M0 .4 L50 50.6 L100 .4" stroke="rgba(255,255,255,.5)"/>
+      <path d="M0 100 L40 58 M100 100 L60 58" stroke="rgba(176,73,44,.22)"/>
+      <!-- filete terracota em volta do envelope -->
+      <rect x="2.6" y="1.6" width="94.8" height="96.8" fill="none" stroke="rgba(176,73,44,.6)"/>
+      <rect x="3.6" y="2.2" width="92.8" height="95.6" fill="none" stroke="rgba(176,73,44,.25)"/>
     </svg>
     <div class="flap-shadow"></div>
-    <div class="flap"><div class="face front"></div><div class="face inside"></div></div>
+    <div class="flap"><div class="face front"><svg class="flap-trim" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M2.6 3 H97.4 L50 93 Z" fill="none" stroke="rgba(176,73,44,.6)"/><path d="M4.6 5 H95.4 L50 89 Z" fill="none" stroke="rgba(176,73,44,.25)"/></svg></div><div class="face inside"></div></div>
 
     <div class="seal">
       <div class="half l"><svg viewBox="-60 -60 120 120"><use href="#waxSeal" x="-60" y="-60" width="120" height="120"/></svg></div>
@@ -526,7 +532,7 @@
       <div class="row">
         <div class="side caps" id="dWeek">Sábado</div>
         <div class="day" id="dDay">10</div>
-        <div class="side caps" id="dTime">20h</div>
+        <div class="side caps" id="dTime">19h</div>
       </div>
       <div class="year caps" id="dYear">2027</div>
     </div>
@@ -820,14 +826,14 @@
     cv.className = "fx"; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
     document.body.appendChild(cv);
     const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
-    const palettes = [["#fff4d6", "#f6d28a", "#e8b45a"], ["#ffd9b8", "#e8875a", "#c9643e"], ["#fff8ec", "#f3e3cc", "#d9c3a0"], ["#ffe6c7", "#d9953a", "#b0492c"]];
+    const palettes = [["#f2c14e", "#d9952a", "#e0a63a"], ["#e8875a", "#c9643e", "#b0492c"], ["#d4a640", "#b8862a", "#c99a3a"], ["#d9953a", "#b0492c", "#8e3a22"]];
     const sparks = [], rockets = [];
-    // brilho pré-desenhado por cor: núcleo branco + halo colorido (bem visível sobre o caramelo)
+    // brilho pré-desenhado por cor: núcleo claro + halo colorido
     const glow = {};
     const sprite = c => glow[c] || (glow[c] = (() => {
       const o = document.createElement("canvas"); o.width = o.height = 64;
       const g = o.getContext("2d"), rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-      rg.addColorStop(0, "#ffffff"); rg.addColorStop(.18, "#fffaf0"); rg.addColorStop(.4, c); rg.addColorStop(1, "rgba(255,200,140,0)");
+      rg.addColorStop(0, "#fff6dc"); rg.addColorStop(.15, c); rg.addColorStop(.45, c + "aa"); rg.addColorStop(1, c + "00");
       g.fillStyle = rg; g.fillRect(0, 0, 64, 64); return o;
     })());
     function burst(x, y, n, power, pal) {
@@ -849,7 +855,7 @@
       ctx.clearRect(0, 0, innerWidth, innerHeight);
       if (flash > 0) {
         const fr = ctx.createRadialGradient(cx, cy, 0, cx, cy, 220);
-        fr.addColorStop(0, `rgba(255,248,230,${flash})`); fr.addColorStop(1, "rgba(255,220,170,0)");
+        fr.addColorStop(0, `rgba(242,193,78,${flash * .8})`); fr.addColorStop(1, "rgba(242,193,78,0)");
         ctx.fillStyle = fr; ctx.fillRect(cx - 220, cy - 220, 440, 440); flash -= .07 * dt;
       }
       for (let i = rockets.length - 1; i >= 0; i--) {     // foguetes sobem do lacre e estouram
