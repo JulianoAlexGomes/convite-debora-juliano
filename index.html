@@ -45,6 +45,9 @@
     -webkit-background-clip: text; background-clip: text; color: transparent;
     filter: drop-shadow(0 1px 0 rgba(255,255,255,.7)) drop-shadow(0 -.5px 0 rgba(90,55,20,.3));
     animation: sheen 9s ease-in-out infinite;
+    /* folga para as voltas da caligrafia: o dourado só pinta dentro da caixa do texto */
+    padding: .25em .4em; margin: -.25em -.4em;
+    -webkit-box-decoration-break: clone; box-decoration-break: clone;
   }
   @keyframes sheen { 50% { background-position: 100% 0; } }
   /* impressão tipográfica: tinta levemente afundada no papel */
