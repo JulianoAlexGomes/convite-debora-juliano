@@ -128,7 +128,7 @@
   /* lacre de bronze: acende em círculo e se parte */
   .seal {
     position: absolute; left: 50%; top: 52%; z-index: 6;
-    width: calc(var(--w) * .28); aspect-ratio: 1;
+    width: calc(var(--w) * .56); aspect-ratio: 1;
     transform: translate(-50%, -50%);
     animation: breathe 2.6s ease-in-out infinite;
   }
@@ -152,6 +152,10 @@
     filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 4px #ffd6a0);
   }
   .seal-ring .fill { fill: url(#sealLight); opacity: 0; transition: opacity .35s ease; }
+  .seal-ring .glow-initials {
+    fill: #fff4df; opacity: 0; transition: opacity .45s ease;
+    filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 4px #ffd9a0) drop-shadow(0 0 9px #f0a060);
+  }
   .seal::before {
     content: ""; position: absolute; inset: -18%; border-radius: 50%; pointer-events: none;
     background: radial-gradient(circle, rgba(255,236,205,.55) 0%, rgba(240,170,110,.22) 45%, rgba(240,170,110,0) 70%);
@@ -161,6 +165,7 @@
   #envelope.s0 .seal-ring .trace { opacity: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 1.1s cubic-bezier(.45,0,.35,1), opacity .15s; }
   #envelope.s0f .seal::before { opacity: 1; transform: scale(1); }
   #envelope.s0f .seal-ring .fill { opacity: 1; }
+  #envelope.s0f .seal-ring .glow-initials { opacity: 1; }
   #envelope.s0f .seal .half { filter: brightness(1.18) drop-shadow(0 2px 1.5px rgba(40,20,5,.5)) drop-shadow(0 8px 12px rgba(40,20,5,.3)); }
   #envelope.s1 .seal-ring { opacity: 0; }
   #envelope.s1 .seal::before { opacity: 0; transform: scale(1.6); transition: opacity .7s ease, transform .7s ease; }
@@ -448,7 +453,7 @@
     <div class="seal">
       <div class="half l"><svg viewBox="-60 -60 120 120"><use href="#waxSeal" x="-60" y="-60" width="120" height="120"/></svg></div>
       <div class="half r"><svg viewBox="-60 -60 120 120"><use href="#waxSeal" x="-60" y="-60" width="120" height="120"/></svg></div>
-      <svg class="seal-ring" viewBox="-60 -60 120 120" aria-hidden="true"><circle class="fill" r="36"/><circle class="trace" r="37" pathLength="100"/></svg>
+      <svg class="seal-ring" viewBox="-60 -60 120 120" aria-hidden="true"><circle class="fill" r="36"/><circle class="trace" r="37" pathLength="100"/><text class="glow-initials sealText" transform="rotate(90)" x="0" y="6" text-anchor="middle" font-family="Pinyon Script, cursive" font-size="28">D&amp;J</text></svg>
     </div>
   </div>
   <div class="tap-hint caps">Toque no lacre</div>
@@ -583,7 +588,7 @@
   <section class="block paper-a rsvp">
     <div class="reveal">
       <h2 class="heading script press"><svg><use href="#flourish-l"/></svg>Confirme presença<svg class="flip"><use href="#flourish-l"/></svg></h2>
-      <p>Pedimos a gentileza de confirmar sua presença até <strong>10 de março de 2027</strong>.</p>
+      <p id="rsvpAsk">Pedimos a gentileza de confirmar sua presença até <strong>10 de março de 2027</strong>.</p>
       <form id="rsvpForm" class="rsvp-form" novalidate>
         <label class="field"><span>Nome completo</span><input name="nome" autocomplete="name" required maxlength="120"></label>
         <label class="field"><span>Telefone / WhatsApp</span><input name="telefone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30"></label>
@@ -780,11 +785,11 @@
     const at = (ms, fn) => setTimeout(fn, ms);
     env.classList.add("s0");                                 // luz percorre a borda do lacre
     at(1150, () => env.classList.add("s0f"));                // círculo fechado: lacre se ilumina
-    at(1550, () => env.classList.add("s1"));                 // lacre se parte
-    at(2000, () => env.classList.add("s2"));                 // aba gira em 3D
-    at(2500, () => env.classList.add("behind"));             // aba passa para trás do cartão
-    at(3050, () => env.classList.add("s3"));                 // cartão desliza para fora
-    at(4300, () => {                                         // cartão cresce até ocupar a tela
+    at(1950, () => env.classList.add("s1"));                 // iniciais brilham; lacre se parte
+    at(2400, () => env.classList.add("s2"));                 // aba gira em 3D
+    at(2900, () => env.classList.add("behind"));             // aba passa para trás do cartão
+    at(3450, () => env.classList.add("s3"));                 // cartão desliza para fora (1,1 s)
+    at(6050, () => {                                         // após 1,5 s parado, cartão cresce até ocupar a tela
       const r = card.getBoundingClientRect();
       const scale = Math.max(innerWidth / r.width, innerHeight / r.height) * 1.02;
       const dx = innerWidth / 2 - (r.left + r.width / 2);
@@ -792,7 +797,7 @@
       card.style.transform = `translate(${dx}px, ${dy}px) translateY(-16%) scale(${scale})`;
       env.classList.add("s4");
     });
-    at(5450, finishOpening);
+    at(7200, finishOpening);
   }
   env.addEventListener("click", openEnvelope);
   env.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openEnvelope(); } });
@@ -835,6 +840,7 @@
         // text/plain evita a verificação prévia de CORS; o Apps Script lê o JSON do corpo
         await fetch(CONFIG.rsvpEndpoint, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(data) });
         form.hidden = true;
+        $("rsvpAsk").hidden = true;
         $("rsvpDoneMsg").textContent = sim
           ? `${nome.split(" ")[0]}, sua presença está confirmada. Mal podemos esperar para celebrar com você!`
           : `${nome.split(" ")[0]}, sentiremos sua falta. Obrigado por nos avisar com carinho.`;
