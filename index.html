@@ -169,8 +169,13 @@
   #envelope.s0f .seal .half { filter: brightness(1.18) drop-shadow(0 2px 1.5px rgba(40,20,5,.5)) drop-shadow(0 8px 12px rgba(40,20,5,.3)); }
   #envelope.s1 .seal-ring { opacity: 0; }
   #envelope.s1 .seal::before { opacity: 0; transform: scale(1.6); transition: opacity .7s ease, transform .7s ease; }
-  #envelope.s1 .seal .half.l { transform: translate(-30%, 60%) rotate(-38deg); opacity: 0; }
-  #envelope.s1 .seal .half.r { transform: translate(30%, 70%) rotate(32deg); opacity: 0; }
+  #envelope.s1 .seal .half { transform: scale(1.18); opacity: 0; transition: transform .45s cubic-bezier(.2,.8,.3,1), opacity .4s ease .05s; }
+
+  /* revoada de borboletas que nasce do lacre */
+  .bfly { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none; will-change: transform, opacity; filter: drop-shadow(0 3px 3px rgba(60,25,5,.35)); }
+  .bfly svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .bfly .w { transform-origin: 20px 20px; animation: flap var(--flap, .17s) ease-in-out infinite alternate; }
+  @keyframes flap { to { transform: scaleX(.18); } }
 
   /* saída: envelope desce, cartão vem para a frente */
   #envelope.s3 .card { transform: translateY(-16%); }
@@ -771,6 +776,39 @@
     el("ellipse", { cx: B[0], cy: B[1], rx: 6, ry: 7, fill: "#9c3c22" });
   })();
 
+  // ===== Borboletas: saem do centro do lacre e voam para todos os lados, mais para cima =====
+  function butterflies() {
+    const r = env.querySelector(".seal").getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const palette = [["#b0492c", "#5e1f0e"], ["#fbf3e6", "#8a7152"], ["#ecd6c4", "#8e4a22"], ["#7e3119", "#3a1408"], ["#f2c98e", "#8e4a22"], ["#8a7152", "#3a2a1c"]];
+    for (let i = 0; i < 26; i++) {
+      const [c, edge] = palette[i % palette.length];
+      const size = 40 + Math.random() * 38;
+      const b = document.createElement("div");
+      b.className = "bfly";
+      b.style.width = b.style.height = size + "px";
+      b.style.setProperty("--flap", (.12 + Math.random() * .1).toFixed(2) + "s");
+      const wing = `<path d="M20 19 C24 6 37 4 37 14 C37 21 29 23 20 21Z" fill="${c}" stroke="${edge}" stroke-width=".8"/>
+        <path d="M20 21 C27 22 33 27 30 33 C27 37 21 31 20 23Z" fill="${c}" stroke="${edge}" stroke-width=".8" opacity=".92"/>
+        <circle cx="31" cy="12" r="1.6" fill="#fffaf2" opacity=".85"/><path d="M22 18 C27 12 32 11 34 13" fill="none" stroke="${edge}" stroke-width=".5" opacity=".6"/>`;
+      b.innerHTML = `<svg viewBox="0 0 40 40"><g class="w">${wing}</g><g transform="matrix(-1 0 0 1 40 0)"><g class="w">${wing}</g></g>
+        <ellipse cx="20" cy="22" rx="1.4" ry="7" fill="#3a2a1c"/><path d="M19.5 15 C18 11 16 9 14.5 8 M20.5 15 C22 11 24 9 25.5 8" fill="none" stroke="#3a2a1c" stroke-width=".6"/></svg>`;
+      document.body.appendChild(b);
+      const ang = Math.random() * Math.PI * 2, dist = 160 + Math.random() * 300;
+      const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist * .8 - 140 - Math.random() * 160;
+      const head = Math.atan2(dy, dx) * 180 / Math.PI + 90;  // a borboleta voa de frente para a direção
+      const wob = (Math.random() - .5) * 80;
+      const at = (f, x, y, rot, sc, op) => ({ offset: f, opacity: op, transform: `translate(${cx + x - size / 2}px, ${cy + y - size / 2}px) rotate(${rot}deg) scale(${sc})` });
+      b.animate([
+        at(0, 0, 0, head, .2, 0),
+        at(.1, dx * .12, dy * .12, head, 1, 1),
+        at(.5, dx * .55 + wob, dy * .55, head + wob * .4, 1, 1),
+        at(1, dx + wob * .5, dy, head - wob * .3, .85, 0),
+      ], { duration: 1700 + Math.random() * 1300, delay: Math.random() * 180, easing: "cubic-bezier(.15,.6,.35,1)", fill: "forwards" })
+        .finished.then(() => b.remove());
+    }
+  }
+
   // ===== Abertura: lacre acende em círculo, se parte, aba abre, cartão sai =====
   const env = $("envelope"), card = env.querySelector(".card");
   function finishOpening() {
@@ -785,7 +823,7 @@
     const at = (ms, fn) => setTimeout(fn, ms);
     env.classList.add("s0");                                 // luz percorre a borda do lacre
     at(1150, () => env.classList.add("s0f"));                // círculo fechado: lacre se ilumina
-    at(1950, () => env.classList.add("s1"));                 // iniciais brilham; lacre se parte
+    at(1950, () => { env.classList.add("s1"); butterflies(); }); // lacre se desfaz em borboletas
     at(2400, () => env.classList.add("s2"));                 // aba gira em 3D
     at(2900, () => env.classList.add("behind"));             // aba passa para trás do cartão
     at(3450, () => env.classList.add("s3"));                 // cartão desliza para fora (1,1 s)
@@ -888,8 +926,8 @@
   // ===== Pétalas secas caindo só enquanto o local está visível =====
   const petalColors = ["#b0492c", "#ecd6c4", "#d9953a", "#c67a3e"];
   let petalTimer = null;
-  function dropPetal() {
-    if (document.hidden) return;
+  function dropPetal(fast) {
+    if (document.hidden || document.querySelectorAll(".petal").length > 140) return;
     const m = document.querySelector("main").getBoundingClientRect();
     const p = document.createElement("div");
     p.className = "petal";
@@ -897,10 +935,15 @@
     p.style.background = petalColors[Math.floor(Math.random() * petalColors.length)];
     p.style.setProperty("--dx", (Math.random() * 120 - 60) + "px");
     p.style.setProperty("--rot", (Math.random() * 720 - 360) + "deg");
-    p.style.animationDuration = (6 + Math.random() * 4) + "s";
+    p.style.animationDuration = (fast ? 3.5 + Math.random() * 2.5 : 6 + Math.random() * 4) + "s";
     p.addEventListener("animationend", () => p.remove());
     document.body.appendChild(p);
   }
+  // a cada toque no convite (fora de botões e campos), uma chuva de pétalas
+  if (!reduceMotion) document.querySelector("main").addEventListener("click", e => {
+    if (e.target.closest("a, button, input, textarea, select, label")) return;
+    for (let i = 0; i < 18; i++) setTimeout(() => dropPetal(true), i * 40 + Math.random() * 120);
+  });
   if (!reduceMotion) new IntersectionObserver(([e]) => {
     if (e.isIntersecting && !petalTimer) petalTimer = setInterval(dropPetal, 800);
     if (!e.isIntersecting) { clearInterval(petalTimer); petalTimer = null; }
