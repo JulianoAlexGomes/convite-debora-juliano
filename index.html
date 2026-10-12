@@ -322,7 +322,11 @@
 
   .rsvp p { font-size: 23px; line-height: 1.5; margin-top: 14px; }
   .rsvp strong { font-weight: 600; color: var(--terracotta); }
-  .rsvp-form { max-width: 380px; margin: 26px auto 0; text-align: left; }
+  .rsvp-form { max-width: 380px; margin: 26px auto 0; text-align: center; }
+  .rsvp-form input:not([type=radio]), .rsvp-form textarea { text-align: center; }
+  .rsvp-form select { text-align-last: center; }
+  .rsvp-form .choice legend { width: 100%; text-align: center; }
+  .rsvp-form .choice label { margin: 4px 3px 0 !important; }
   .rsvp-form .field { display: block; margin-top: 18px; }
   .rsvp-form .field > span, .rsvp-form legend { display: block; font-size: 13px; letter-spacing: .25em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
   .rsvp-form em { text-transform: none; letter-spacing: 0; }
@@ -342,7 +346,7 @@
   .rsvp-form .choice input:focus-visible + span { outline: 2px solid var(--terracotta); outline-offset: 2px; }
   .rsvp-form .btn { display: block; width: 100%; margin-top: 28px; background: transparent; font-family: inherit; cursor: pointer; }
   .rsvp-form .btn[disabled] { opacity: .6; cursor: wait; }
-  .companions .row { display: flex; align-items: flex-end; gap: 8px; margin-top: 6px; }
+  .companions .row { display: flex; align-items: flex-end; gap: 8px; margin-top: 6px; padding-left: 42px; } /* equilibra o × para o campo ficar centralizado */
   .companions .row input { flex: 1; }
   .companions .remove { flex: none; width: 34px; height: 34px; border: 0; background: none; color: var(--muted); font-size: 24px; line-height: 1; cursor: pointer; }
   .companions .remove:hover { color: var(--terracotta); }
