@@ -683,7 +683,8 @@
     heroTime: "19h", // horário mostrado na capa (recepção dos convidados)
     city: "São Leopoldo · RS",
     // URL do App da Web do Google Apps Script (veja rsvp-apps-script.gs) — as respostas vão para a planilha
-    music: "fMmfd4L3LMo", // ID do vídeo no YouTube (James Arthur — Say You Won't Let Go)
+    musicFile: "", // arquivo de áudio na mesma pasta (ex.: "musica.mp3") — funciona também no iPhone
+    music: "fMmfd4L3LMo", // reserva: ID do vídeo no YouTube, usado só se não houver musicFile
     rsvpEndpoint: "https://script.google.com/macros/s/AKfycbw9MD1TOlox-iwg2Vp5Xk2l857Ox1xPKhxOOJDnLoXs7wSIKxk4A_TAC-61ZDE-fXGv/exec",
   };
 
@@ -886,43 +887,53 @@
     })(start);
   }
 
-  // ===== Música de fundo pelo player oficial do YouTube =====
+  // ===== Música de fundo =====
+  // Preferência: arquivo de áudio próprio (CONFIG.musicFile) — toca em qualquer aparelho, inclusive iPhone.
+  // Sem arquivo, tenta o player do YouTube (no Safari do iPhone ele costuma ser bloqueado).
   const Music = (() => {
     const btn = $("music");
-    let player = null, ready = false, wanted = false;
+    let audio = null, player = null, ready = false, wanted = false;
     const setUI = on => { btn.classList.toggle("playing", on); btn.setAttribute("aria-label", on ? "Pausar música" : "Tocar música"); };
-    function fadeIn() {
-      let v = 0; player.setVolume(0);
-      const t = setInterval(() => { v = Math.min(80, v + 8); player.setVolume(v); if (v >= 80) clearInterval(t); }, 150);
-    }
-    window.onYouTubeIframeAPIReady = () => {
-      player = new YT.Player("ytPlayer", {
-        width: 200, height: 200, videoId: CONFIG.music,
-        playerVars: { controls: 0, playsinline: 1, rel: 0, start: 0, loop: 1, playlist: CONFIG.music },
-        events: {
-          onReady: () => { ready = true; if (wanted) { player.unMute(); player.playVideo(); fadeIn(); } },
-          onStateChange: e => {
-            if (e.data === YT.PlayerState.PLAYING) setUI(true);
-            if (e.data === YT.PlayerState.PAUSED) setUI(false);
-            if (e.data === YT.PlayerState.ENDED) { player.seekTo(0); player.playVideo(); }
+
+    if (CONFIG.musicFile) {
+      audio = new Audio(CONFIG.musicFile);
+      audio.loop = true; audio.preload = "auto"; audio.setAttribute("playsinline", "");
+      audio.addEventListener("play", () => setUI(true));
+      audio.addEventListener("pause", () => setUI(false));
+      btn.hidden = false;
+    } else if (CONFIG.music) {
+      window.onYouTubeIframeAPIReady = () => {
+        player = new YT.Player("ytPlayer", {
+          width: 200, height: 200, videoId: CONFIG.music,
+          playerVars: { controls: 0, playsinline: 1, rel: 0, start: 0, loop: 1, playlist: CONFIG.music },
+          events: {
+            onReady: () => { ready = true; if (wanted) { player.unMute(); player.setVolume(80); player.playVideo(); } },
+            onStateChange: e => {
+              if (e.data === YT.PlayerState.PLAYING) setUI(true);
+              if (e.data === YT.PlayerState.PAUSED) setUI(false);
+              if (e.data === YT.PlayerState.ENDED) { player.seekTo(0); player.playVideo(); }
+            },
           },
-        },
-      });
-    };
-    if (CONFIG.music) {
+        });
+      };
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
       document.head.appendChild(tag);
       btn.hidden = false;
     }
+
+    // chamado direto no toque (o iPhone só libera o som dentro do próprio gesto)
+    function play() {
+      wanted = true;
+      if (audio) { audio.play().catch(() => setUI(false)); return; }
+      if (ready) { player.unMute(); player.setVolume(80); player.playVideo(); }
+    }
     btn.addEventListener("click", () => {
+      if (audio) { audio.paused ? play() : audio.pause(); return; }
       if (!ready) return;
-      if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo();
-      else { player.unMute(); player.playVideo(); }
+      if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo(); else play();
     });
-    return {
-      play() { wanted = true; if (ready) { player.unMute(); player.playVideo(); fadeIn(); } },
-    };
+    return { play };
   })();
 
   // ===== Abertura: lacre acende em círculo, se parte, aba abre, cartão sai =====
