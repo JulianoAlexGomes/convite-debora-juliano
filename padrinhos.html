@@ -342,10 +342,13 @@
   /* cor em tela cheia, para comparar com o tecido */
   .color-view {
     position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; justify-content: center;
-    background: var(--cv, #b0492c); color: var(--cv-ink, #fff);
+    background: transparent; color: var(--cv-ink, #fff);
     animation: cvIn .3s ease; touch-action: pan-y;
   }
   @keyframes cvIn { from { opacity: 0; } }
+  /* camada de cor: uma nova a cada troca, para o Safari reler a cor das barras */
+  .cv-bg { position: fixed; inset: -60px 0; z-index: -1; pointer-events: none; }
+  .cv-info, .cv-btn { z-index: 1; }
   .cv-info { text-align: center; padding: 0 24px calc(40px + env(safe-area-inset-bottom, 0px)); }
   .cv-group { display: block; font-size: 13px; letter-spacing: .3em; text-transform: uppercase; opacity: .75; }
   .cv-name { font-family: "Pinyon Script", cursive; font-size: 54px; line-height: 1.2; }
@@ -1104,7 +1107,12 @@
     function show() {
       const b = list[i];
       paintChrome(b.dataset.c);
-      view.style.setProperty("--cv", b.dataset.c); view.style.setProperty("--cv-ink", ink(b.dataset.c));
+      const layer = document.createElement("div");
+      layer.className = "cv-bg"; layer.style.backgroundColor = b.dataset.c;
+      const old = view.querySelectorAll(".cv-bg");
+      view.prepend(layer);
+      requestAnimationFrame(() => requestAnimationFrame(() => old.forEach(o => o.remove())));
+      view.style.setProperty("--cv-ink", ink(b.dataset.c));
       $("cvGroup").textContent = b.dataset.g; $("cvName").textContent = b.dataset.n; $("cvHex").textContent = b.dataset.c;
     }
     const step = d => { i = (i + d + list.length) % list.length; show(); };
@@ -1115,6 +1123,7 @@
     }
     function close() {
       view.hidden = true; document.body.style.overflow = "";
+      view.querySelectorAll(".cv-bg").forEach(o => o.remove());
       meta.content = metaOrig; document.documentElement.style.backgroundColor = htmlBg; document.body.style.backgroundColor = bodyBg;
       if (lastFocus) lastFocus.focus();
     }
